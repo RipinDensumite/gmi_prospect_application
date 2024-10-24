@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:gmi_prospect_application/models/subject.dart';
 import 'package:gmi_prospect_application/screens/results_screen.dart';
+import 'package:gmi_prospect_application/widget/enquiry_dialog.dart';
 
 class SubjectFormScreen extends StatefulWidget {
   const SubjectFormScreen({super.key});
@@ -13,12 +14,12 @@ class SubjectFormScreen extends StatefulWidget {
 class _SubjectFormScreenState extends State<SubjectFormScreen> {
   final List<Subject> subjects = [];
   final List<String> subjectOptions = [
-    'Mathematics',
-    'Physics',
-    'English',
-    'Art',
-    'Chemistry',
-    'Biology',
+    'Bahasa Melayu',
+    'Bahasa Inggeris',
+    'Matematik',
+    'Sejarah',
+    'Pendidikan Islam',
+    'Fizik',
   ];
 
   final List<String> gradeOptions = [
@@ -71,11 +72,24 @@ class _SubjectFormScreenState extends State<SubjectFormScreen> {
     );
   }
 
+  void _showEnquiryDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => const EnquiryDialog(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Subject Application'),
+        title: const Text('GMI Prospect Application'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: _showEnquiryDialog,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
