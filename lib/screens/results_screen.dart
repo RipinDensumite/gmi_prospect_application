@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:gmi_prospect_application/models/subject.dart';
 import 'package:gmi_prospect_application/models/course.dart';
 import 'package:gmi_prospect_application/data/courses.dart';
+import 'package:gmi_prospect_application/widget/enquiry_dialog.dart';
 
 class ResultsScreen extends StatelessWidget {
   final List<Subject> subjects;
@@ -13,13 +14,13 @@ class ResultsScreen extends StatelessWidget {
   bool canEnrollInCourse(Course course) {
     for (var requirement in course.requirements) {
       String subjectName = requirement.keys.first;
-      double requiredGrade = requirement.values.first;
-      
+      String requiredGrade = requirement.values.first;
+
       bool subjectFound = false;
       for (var subject in subjects) {
         if (subject.name == subjectName) {
           subjectFound = true;
-          if (subject.gradePoint < requiredGrade) {
+          if (!isGradeEqualOrBetter(subject.grade, requiredGrade)) {
             return false;
           }
           break;
@@ -30,6 +31,29 @@ class ResultsScreen extends StatelessWidget {
     return true;
   }
 
+  bool isGradeEqualOrBetter(String actualGrade, String requiredGrade) {
+    final gradeOrder = {
+      'A+': 0,
+      'A': 1,
+      'A-': 2,
+      'B+': 3,
+      'B': 4,
+      'B-': 5,
+      'C+': 6,
+      'C': 7,
+      'C-': 8,
+      'D+': 9,
+      'D': 10,
+      'F': 11,
+    };
+
+    final actualValue =
+        gradeOrder[actualGrade] ?? 12; // Default to worst if grade not found
+    final requiredValue = gradeOrder[requiredGrade] ?? 12;
+
+    return actualValue <= requiredValue; // Lower number means better grade
+  }
+
   void _launchURL(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
@@ -38,15 +62,27 @@ class ResultsScreen extends StatelessWidget {
     }
   }
 
+  // void _showEnquiryDialog() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) => const EnquiryDialog(),
+  //   );
+  // }
+
   @override
   Widget build(BuildContext context) {
-    List<Course> eligibleCourses = gmiCourses
-        .where((course) => canEnrollInCourse(course))
-        .toList();
+    List<Course> eligibleCourses =
+        gmiCourses.where((course) => canEnrollInCourse(course)).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Available Programs'),
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.info_outline),
+        //     onPressed: _showEnquiryDialog,
+        //   ),
+        // ],
         elevation: 0,
       ),
       body: Container(
@@ -159,7 +195,8 @@ class ResultsScreen extends StatelessWidget {
                                     Padding(
                                       padding: const EdgeInsets.all(20.0),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             course.name,
@@ -179,34 +216,18 @@ class ResultsScreen extends StatelessWidget {
                                           ),
                                           const SizedBox(height: 20),
                                           Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 16,
-                                                  vertical: 8,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Theme.of(context).primaryColor.withOpacity(0.1),
-                                                  borderRadius: BorderRadius.circular(20),
-                                                ),
-                                                child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    Text(
-                                                      'Learn more',
-                                                      style: TextStyle(
-                                                        color: Theme.of(context).primaryColor,
-                                                        fontWeight: FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 4),
-                                                    Icon(
-                                                      Icons.arrow_forward,
-                                                      size: 18,
-                                                      color: Theme.of(context).primaryColor,
-                                                    ),
-                                                  ],
-                                                ),
+                                              ElevatedButton(
+                                                onPressed: () => _launchURL(
+                                                    course.websiteUrl),
+                                                child: const Text('Learn More'),
+                                              ),
+                                              ElevatedButton(
+                                                onPressed: () => _launchURL(
+                                                    'https://gmi.vialing.com'),
+                                                child: const Text('Apply'),
                                               ),
                                             ],
                                           ),

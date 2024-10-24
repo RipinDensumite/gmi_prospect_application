@@ -4,7 +4,7 @@ class Course {
   final String description;
   final String imageUrl;
   final String websiteUrl;
-  final List<Map<String, double>> requirements;
+  final List<Map<String, String>> requirements;
 
   Course({
     required this.name,

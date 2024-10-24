@@ -10,8 +10,8 @@ final List<Course> gmiCourses = [
         'https://www.gmi.edu.my/wp-content/uploads/2020/04/Mechatronics-PLC-9-3.jpg', // Using placeholder as per instructions
     websiteUrl: 'https://www.gmi.edu.my/electrical-engineering/mechatronics/',
     requirements: [
-      {'Mathematics': 2.0},
-      {'Physics': 2.0},
+      {'Bahasa Melayu': 'A'},
+      {'Fizik': 'B'},
     ],
   ),
   Course(
@@ -21,8 +21,8 @@ final List<Course> gmiCourses = [
     imageUrl: 'https://www.gmi.edu.my/wp-content/uploads/2024/08/SET-15-2048x1365.jpg',
     websiteUrl: 'https://www.gmi.edu.my/computer-and-information/software-engineering/',
     requirements: [
-      {'Mathematics': 2.0},
-      {'English': 2.0},
+      {'Matematik': "A"},
+      {'Bahasa Inggeris': "A"},
     ],
   ),
   Course(
@@ -32,8 +32,8 @@ final List<Course> gmiCourses = [
     imageUrl: 'https://www.gmi.edu.my/wp-content/uploads/2024/08/CRM-6.jpg',
     websiteUrl: 'https://www.gmi.edu.my/computer-and-information/creative-multimedia/',
     requirements: [
-      {'English': 2.0},
-      {'Art': 2.0},
+      {'Bahasa Inggeris': "A"},
+      {'Fizik': "A"},
     ],
   ),
 ];
