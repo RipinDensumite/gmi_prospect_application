@@ -106,11 +106,14 @@ class _ResultsScreenState extends State<ResultsScreen>
     return actualValue <= requiredValue;
   }
 
-  void _launchURL(String url) async {
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      debugPrint('Could not launch $url');
+  void _launchURL(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(
+      url,
+      mode: LaunchMode
+          .externalApplication, // This ensures it opens in external browser
+    )) {
+      throw Exception('Could not launch $urlString');
     }
   }
 
@@ -297,7 +300,7 @@ class _ResultsScreenState extends State<ResultsScreen>
                                       ElevatedButton(
                                         onPressed: isEligible
                                             ? () => _launchURL(
-                                                'https://gmi.vialing.com')
+                                                'https://gmi.vialing.com/oa/register')
                                             : null,
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: isEligible
