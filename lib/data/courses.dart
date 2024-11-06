@@ -1,4 +1,3 @@
-// lib/data/courses.dart
 import 'package:gmi_prospect_application/models/course.dart';
 
 final List<Course> gmiCourses = [
