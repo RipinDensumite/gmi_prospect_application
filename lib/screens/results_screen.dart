@@ -1,4 +1,3 @@
-// lib/screens/results_screen.dart
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:gmi_prospect_application/models/subject.dart';
@@ -6,10 +5,64 @@ import 'package:gmi_prospect_application/models/course.dart';
 import 'package:gmi_prospect_application/data/courses.dart';
 import 'package:gmi_prospect_application/widget/enquiry_dialog.dart';
 
-class ResultsScreen extends StatelessWidget {
+enum ProgramCategory { all, diploma, gapp, gufp }
+
+class ResultsScreen extends StatefulWidget {
   final List<Subject> subjects;
 
   const ResultsScreen({super.key, required this.subjects});
+
+  @override
+  State<ResultsScreen> createState() => _ResultsScreenState();
+}
+
+class _ResultsScreenState extends State<ResultsScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  late List<Course> filteredCourses;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+    filteredCourses = gmiCourses;
+
+    _tabController.addListener(() {
+      filterCourses(_tabController.index);
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void filterCourses(int index) {
+    setState(() {
+      switch (ProgramCategory.values[index]) {
+        case ProgramCategory.all:
+          filteredCourses = gmiCourses;
+          break;
+        case ProgramCategory.diploma:
+          filteredCourses = gmiCourses
+              .where(
+                  (course) => course.name.toLowerCase().startsWith('diploma'))
+              .toList();
+          break;
+        case ProgramCategory.gapp:
+          filteredCourses = gmiCourses
+              .where((course) => course.name.toLowerCase().contains('gapp'))
+              .toList();
+          break;
+        case ProgramCategory.gufp:
+          filteredCourses = gmiCourses
+              .where((course) => course.name.toLowerCase().contains('gufp'))
+              .toList();
+          break;
+      }
+    });
+  }
 
   bool canEnrollInCourse(Course course) {
     for (var requirement in course.requirements) {
@@ -17,7 +70,7 @@ class ResultsScreen extends StatelessWidget {
       String requiredGrade = requirement.values.first;
 
       bool subjectFound = false;
-      for (var subject in subjects) {
+      for (var subject in widget.subjects) {
         if (subject.name == subjectName) {
           subjectFound = true;
           if (!isGradeEqualOrBetter(subject.grade, requiredGrade)) {
@@ -47,11 +100,10 @@ class ResultsScreen extends StatelessWidget {
       'F': 11,
     };
 
-    final actualValue =
-        gradeOrder[actualGrade] ?? 12; // Default to worst if grade not found
+    final actualValue = gradeOrder[actualGrade] ?? 12;
     final requiredValue = gradeOrder[requiredGrade] ?? 12;
 
-    return actualValue <= requiredValue; // Lower number means better grade
+    return actualValue <= requiredValue;
   }
 
   void _launchURL(String url) async {
@@ -62,28 +114,24 @@ class ResultsScreen extends StatelessWidget {
     }
   }
 
-  // void _showEnquiryDialog() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) => const EnquiryDialog(),
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
-    List<Course> eligibleCourses =
-        gmiCourses.where((course) => canEnrollInCourse(course)).toList();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Available Programs'),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.info_outline),
-        //     onPressed: _showEnquiryDialog,
-        //   ),
-        // ],
         elevation: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'All'),
+            Tab(text: 'Diploma'),
+            Tab(text: 'GAPP'),
+            Tab(text: 'GUFP'),
+          ],
+          labelColor: Theme.of(context).primaryColor,
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: Theme.of(context).primaryColor,
+        ),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -105,7 +153,7 @@ class ResultsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Eligible Programs at GMI',
+                    'GMI Programs',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -113,7 +161,7 @@ class ResultsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Based on your qualifications',
+                    'GMI offers a range of programs and services',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey[600],
@@ -123,125 +171,160 @@ class ResultsScreen extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: eligibleCourses.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.school,
-                            size: 80,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No eligible programs found',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Please check the program requirements',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                itemCount: filteredCourses.length,
+                itemBuilder: (context, index) {
+                  final course = filteredCourses[index];
+                  final isEligible = canEnrollInCourse(course);
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                      itemCount: eligibleCourses.length,
-                      itemBuilder: (context, index) {
-                        final course = eligibleCourses[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: InkWell(
-                            onTap: () => _launchURL(course.websiteUrl),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
+                      child: Card(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(16),
+                                  ),
+                                  child: ColorFiltered(
+                                    colorFilter: ColorFilter.mode(
+                                      isEligible
+                                          ? Colors.transparent
+                                          : Colors.grey,
+                                      BlendMode.saturation,
+                                    ),
+                                    child: Image.network(
+                                      course.imageUrl,
+                                      height: 200,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                if (!isEligible)
+                                  Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: const Text(
+                                        'Requirements not met',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    course.name,
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: isEligible
+                                          ? Colors.black
+                                          : Colors.grey[600],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    course.description,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: isEligible
+                                          ? Colors.grey[600]
+                                          : Colors.grey[400],
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: isEligible
+                                            ? () =>
+                                                _launchURL(course.websiteUrl)
+                                            : null,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: isEligible
+                                              ? Theme.of(context).primaryColor
+                                              : Colors.grey[300],
+                                        ),
+                                        child: Text(
+                                          'Learn More',
+                                          style: TextStyle(
+                                            color: isEligible
+                                                ? Colors.white
+                                                : Colors.grey[600],
+                                          ),
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: isEligible
+                                            ? () => _launchURL(
+                                                'https://gmi.vialing.com')
+                                            : null,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: isEligible
+                                              ? Theme.of(context).primaryColor
+                                              : Colors.grey[300],
+                                        ),
+                                        child: Text(
+                                          'Apply',
+                                          style: TextStyle(
+                                            color: isEligible
+                                                ? Colors.white
+                                                : Colors.grey[600],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                              child: Card(
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(16),
-                                      ),
-                                      child: Image.network(
-                                        course.imageUrl,
-                                        height: 200,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(20.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            course.name,
-                                            style: const TextStyle(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 12),
-                                          Text(
-                                            course.description,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              color: Colors.grey[600],
-                                              height: 1.5,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 20),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              ElevatedButton(
-                                                onPressed: () => _launchURL(
-                                                    course.websiteUrl),
-                                                child: const Text('Learn More'),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () => _launchURL(
-                                                    'https://gmi.vialing.com'),
-                                                child: const Text('Apply'),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ),
-                          ),
-                        );
-                      },
+                          ],
+                        ),
+                      ),
                     ),
+                  );
+                },
+              ),
             ),
           ],
         ),

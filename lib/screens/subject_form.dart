@@ -1,4 +1,3 @@
-// lib/screens/subject_form.dart
 import 'package:flutter/material.dart';
 import 'package:gmi_prospect_application/models/subject.dart';
 import 'package:gmi_prospect_application/screens/results_screen.dart';
@@ -54,10 +53,26 @@ class _SubjectFormScreenState extends State<SubjectFormScreen> {
     'F',
   ];
 
+  // Get list of currently selected subjects
+  Set<String> get selectedSubjects => subjects.map((s) => s.name).toSet();
+
   void addSubject() {
+    // Find first available subject
+    String? firstAvailableSubject = subjectOptions.firstWhere(
+      (subject) => !selectedSubjects.contains(subject),
+      orElse: () => '',
+    );
+
+    if (firstAvailableSubject.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('All subjects have been added')),
+      );
+      return;
+    }
+
     setState(() {
       subjects.add(Subject(
-        name: subjectOptions[0],
+        name: firstAvailableSubject,
         grade: gradeOptions[0],
       ));
     });
@@ -131,21 +146,29 @@ class _SubjectFormScreenState extends State<SubjectFormScreen> {
                                 isExpanded: true,
                                 value: subjects[index].name,
                                 items: subjectOptions.map((String value) {
+                                  bool isSelected = selectedSubjects.contains(value) && 
+                                                  value != subjects[index].name;
                                   return DropdownMenuItem<String>(
                                     value: value,
+                                    enabled: !isSelected,
                                     child: Text(
                                       value,
                                       overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: isSelected ? Colors.grey : null,
+                                      ),
                                     ),
                                   );
                                 }).toList(),
                                 onChanged: (String? newValue) {
-                                  setState(() {
-                                    subjects[index] = Subject(
-                                      name: newValue!,
-                                      grade: subjects[index].grade,
-                                    );
-                                  });
+                                  if (newValue != null) {
+                                    setState(() {
+                                      subjects[index] = Subject(
+                                        name: newValue,
+                                        grade: subjects[index].grade,
+                                      );
+                                    });
+                                  }
                                 },
                                 decoration: const InputDecoration(
                                   labelText: 'Subject',
@@ -172,12 +195,14 @@ class _SubjectFormScreenState extends State<SubjectFormScreen> {
                                   );
                                 }).toList(),
                                 onChanged: (String? newValue) {
-                                  setState(() {
-                                    subjects[index] = Subject(
-                                      name: subjects[index].name,
-                                      grade: newValue!,
-                                    );
-                                  });
+                                  if (newValue != null) {
+                                    setState(() {
+                                      subjects[index] = Subject(
+                                        name: subjects[index].name,
+                                        grade: newValue,
+                                      );
+                                    });
+                                  }
                                 },
                                 decoration: const InputDecoration(
                                   labelText: 'Grade',
@@ -209,7 +234,9 @@ class _SubjectFormScreenState extends State<SubjectFormScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton.icon(
-                  onPressed: addSubject,
+                  onPressed: subjectOptions.length == selectedSubjects.length 
+                    ? null 
+                    : addSubject,
                   icon: const Icon(Icons.add),
                   label: const Text('Add Subject'),
                 ),
