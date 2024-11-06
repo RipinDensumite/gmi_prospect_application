@@ -17,9 +17,26 @@ class _SubjectFormScreenState extends State<SubjectFormScreen> {
     'Bahasa Melayu',
     'Bahasa Inggeris',
     'Matematik',
+    'Sains',
     'Sejarah',
     'Pendidikan Islam',
+    'Pendidikan Moral',
+    'Matematik Tambahan',
     'Fizik',
+    'Kimia',
+    'Bilogi',
+    'Prinsip Perakaunan',
+    'Ekonomi Asas',
+    'Perdagangan',
+    'Geografi',
+    'Seni Visual',
+    'Teknologi Maklumat dan Komunikasi (ICT)',
+    'Sains Komputer',
+    'Kesusasteraan Melayu',
+    'Pendidikan Seni Visual',
+    'Sains Sukan',
+    'Tasawwur Islam',
+    'Asas Sains Komputer'
   ];
 
   final List<String> gradeOptions = [
@@ -111,15 +128,14 @@ class _SubjectFormScreenState extends State<SubjectFormScreen> {
                             child: Padding(
                               padding: const EdgeInsets.only(right: 8.0),
                               child: DropdownButtonFormField<String>(
-                                isExpanded: true, // Add this line
+                                isExpanded: true,
                                 value: subjects[index].name,
                                 items: subjectOptions.map((String value) {
                                   return DropdownMenuItem<String>(
                                     value: value,
                                     child: Text(
                                       value,
-                                      overflow: TextOverflow
-                                          .ellipsis, // Add this line
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   );
                                 }).toList(),
@@ -147,7 +163,7 @@ class _SubjectFormScreenState extends State<SubjectFormScreen> {
                             child: Padding(
                               padding: const EdgeInsets.only(right: 8.0),
                               child: DropdownButtonFormField<String>(
-                                isExpanded: true, // Add this line
+                                isExpanded: true,
                                 value: subjects[index].grade,
                                 items: gradeOptions.map((String value) {
                                   return DropdownMenuItem<String>(
